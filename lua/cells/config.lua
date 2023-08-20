@@ -1,6 +1,9 @@
 local M = {}
 
-local defaults = {}
+local defaults = {
+    cell_delimiter = '%%',
+    cell_separator = '─'
+}
 
 M.options = {}
 
