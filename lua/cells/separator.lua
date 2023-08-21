@@ -1,4 +1,4 @@
-local Delimiter = require('cells.delimiter')
+local Delim = require('cells.delimiter')
 local Config = require('cells.config')
 
 local M = {}
@@ -6,7 +6,7 @@ local M = {}
 -- Draws cell borders as virtual text using nvim's extmark functionality
 function M.draw_borders()
 
-    local cell_regex = Delimiter.create_cell_regex()
+    local cell_regex = Delim.create_cell_regex()
     -- local buffer = vim.fn.bufnr('%')
     local buffer = 0
     local ns_id = vim.api.nvim_create_namespace('M')
@@ -30,13 +30,13 @@ function M.draw_borders()
     }
  
     -- Start from BOF and look for existing cell delimiters, the first
-    -- time we call find_next_delimiter() we have to accept a match
+    -- time we call find_next_delim() we have to accept a match
     -- at the current line in case file starts with a cell delimiter.
     local pos_old = vim.api.nvim_win_get_cursor(0)
     vim.api.nvim_win_set_cursor(0, {1, 0})
-    local match_current_line = true
+    local accept_curr = true
     while true do
-        local pos_next = Delimiter.find_next_delimiter(true, match_current_line, cell_regex)
+        local pos_next = Delim.find_next_delim(true, accept_curr, cell_regex)
         if not pos_next then
             -- no more delimiters, delete old borders not marked for saving
             for _, state in pairs(borders) do
@@ -47,7 +47,7 @@ function M.draw_borders()
             vim.api.nvim_win_set_cursor(0, pos_old)
             return
         else  -- delimiter found
-            match_current_line = false
+            accept_curr = false
             local line = pos_next[1]
             if not borders[line] then  -- draw new border
                 opts.id = line
