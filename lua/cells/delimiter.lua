@@ -3,7 +3,7 @@ local config = require("cells.config")
 
 local M = {}
 
--- Gets the valid comment delim (line and block) for the current filetype
+-- Gets the valid comment delim (line and block) for the current filetype.
 function M.get_comment_delim()
     local cmt_str_line = comment_ft.get(vim.bo.filetype)[1]
     local cmt_str_block = comment_ft.get(vim.bo.filetype)[2]
@@ -15,7 +15,7 @@ function M.get_comment_delim()
     return delim
 end
 
--- creates a regex that will match comments with cell delimiters
+-- Creates a regex that will match comments with cell delimiters.
 function M.create_delim_regex()
     local cmt = M.get_comment_delim()
     local cell = config.options.cell_delimiter
@@ -39,9 +39,10 @@ function M.create_delim_regex()
     return regex
 end
 
--- cache delimiter regexes by filetype here for a slight speedup
+-- Cache delimiter regexes by filetype here for a slight speedup.
 local regex_cache = {}
 
+-- Lazily get delimiter regex using cache if available for the current ft.
 function M.get_delim_regex()
     local ft_curr = vim.filetype.match({ filename = vim.api.nvim_buf_get_name(0) })
     local regex = regex_cache[ft_curr]
@@ -54,10 +55,8 @@ end
 
 function M.find_prev_delim(opts)
     opts = opts or {}
-    local move_cursor, accept_curr = opts.move_cursor, opts.accept_curr
-    local flags = "Wb"
-    flags = move_cursor and flags or flags .. "n"
-    flags = flags .. (accept_curr and "c" or "z")
+    local flags = "Wbn"
+    flags = flags .. (opts.accept_curr and "c" or "z")
     local delim_regex = M.get_delim_regex()
 
     -- find prev cell delim
@@ -71,10 +70,8 @@ end
 
 function M.find_next_delim(opts)
     opts = opts or {}
-    local move_cursor, accept_curr = opts.move_cursor, opts.accept_curr
-    local flags = "W"
-    flags = move_cursor and flags or flags .. "n"
-    flags = accept_curr and flags .. "c" or flags
+    local flags = "Wn"
+    flags = opts.accept_curr and flags .. "c" or flags
     local delim_regex = M.get_delim_regex()
 
     -- move cursor to starting position for forward search
@@ -84,53 +81,84 @@ function M.find_next_delim(opts)
     -- move to next cell delim
     local to_line = vim.fn.search(delim_regex, flags)
     local pos_new = { to_line, 0 }
-    if to_line == 0 or move_cursor == false then
-        vim.api.nvim_win_set_cursor(0, pos_old)
-    end
+    vim.api.nvim_win_set_cursor(0, pos_old)
     if to_line == 0 then
-        return nil
-    else
-        return pos_new
+        pos_new = nil
     end
+    return pos_new
 end
 
 -- Moves the cursor to the first line of the prev cell.
+-- Only moves the cursor if there is a cell above.
 function M.cursor_to_prev_cell()
     -- first backward search: accept match at curr line after this
     -- we are guaranteed to be at the delim of the curr cell
-    local pos_new = M.find_prev_delim({ move_cursor = true, accept_curr = true })
+    local pos_new = M.find_prev_delim({ accept_curr = true })
     if pos_new then
+        -- if file started with a delimiter: return early and dont move
+        if pos_new[1] == 1 then
+            return
+        end
+        -- at least one cell above, move cursor
         vim.api.nvim_win_set_cursor(0, pos_new)
 
         -- second backward search: takes us to the delim of the prev cell
-        pos_new = M.find_prev_delim({ move_cursor = true, accept_curr = false })
+        pos_new = M.find_prev_delim({ accept_curr = false })
         if pos_new then
             pos_new[1] = pos_new[1] + 1
             vim.api.nvim_win_set_cursor(0, pos_new)
-            return pos_new
+            return
         end
     end
-
-    -- If one or both backward searches failed: go back to the start.
-    pos_new = { 1, 0 }
-    vim.api.nvim_win_set_cursor(0, pos_new)
-    return pos_new
 end
 
 -- Moves the cursor to the first line of the next cell.
+-- Only moves the cursor if there is a cell below.
 function M.cursor_to_next_cell()
-    local pos_new = M.find_next_delim({ move_cursor = false, accept_curr = false })
+    local pos_new = M.find_next_delim({ accept_curr = false })
     if pos_new then
+        -- if we hit EOF return
+        if pos_new[1] == vim.fn.line("$") then
+            return
+        end
+        -- else set cursor to line after delimiter
         pos_new[1] = pos_new[1] + 1
         vim.api.nvim_win_set_cursor(0, pos_new)
     end
-    return pos_new
+end
+
+
+function M.get_cell_extent(ai_type)
+    local pos_prev = M.find_prev_delim({accept_curr = true})
+    local line_start
+    local line_stop
+
+    -- Find start of the cell, if ai_type is "i"
+    -- dont include the starting cell delimiter.
+    if pos_prev then
+        line_start = pos_prev[1]
+        if ai_type == "i" then
+            line_start = line_start + 1
+        end
+    else  -- if no match then start from BOF
+        line_start = 1
+    end
+        
+    -- Find the end of the cell, the final
+    -- cell delimiter is never a part of the cell.
+    local pos_next = M.find_next_delim()
+    if pos_next then
+        line_stop = pos_next[1] - 1
+    else
+       line_stop = vim.fn.line("$")
+    end
+    return {start = line_start, stop = line_stop}
 end
 
 -- Find the region that corresponds to the nearest cell
 -- ai_type: 'i' or 'a' for inner or around
 function M.get_cell_region(ai_type)
-    local cell_regex = M.create_delim_regex()
+    local cell_regex = M.get_delim_regex()
     local pos_old = vim.api.nvim_win_get_cursor(0)
 
     -- move cursor to starting position for backward search
@@ -143,14 +171,14 @@ function M.get_cell_region(ai_type)
     end
 
     -- find next cell delim or EOF, move cursor
-    local num_lines = vim.api.nvim_buf_line_count(0)
-    local to_line = vim.fn.search(cell_regex, "W", num_lines)
-    to_line = to_line == 0 and num_lines or to_line - 1
+    local n_lines = vim.api.nvim_buf_line_count(0)
+    local to_line = vim.fn.search(cell_regex, "W", n_lines)
+    to_line = to_line == 0 and n_lines or to_line - 1
     vim.api.nvim_win_set_cursor(0, { to_line, 0 })
 
     -- define the region and move cursor back
-    local from = { line = from_line, col = 1 }
-    local to = { line = to_line, col = vim.fn.col("$") }
+    local from = { from_line, 1 }
+    local to = { to_line, vim.fn.col("$") }
     vim.api.nvim_win_set_cursor(0, pos_old)
     return { from = from, to = to }
 end

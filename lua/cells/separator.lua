@@ -32,7 +32,7 @@ function M.draw_separators()
     vim.api.nvim_win_set_cursor(0, { 1, 0 })
     local accept_curr = true
     while true do
-        local pos_next = delim.find_next_delim({move_cursor=true, accept_curr=accept_curr})
+        local pos_next = delim.find_next_delim({move_cursor=false, accept_curr=accept_curr})
         if not pos_next then
             -- no more delimiters, delete old borders not marked for saving
             for _, state in pairs(separators) do
@@ -43,6 +43,7 @@ function M.draw_separators()
             vim.api.nvim_win_set_cursor(0, pos_old)
             return
         else -- delimiter found
+            vim.api.nvim_win_set_cursor(0, pos_next)
             accept_curr = false
             local line = pos_next[1]
             if not separators[line] then -- draw new border
