@@ -1,4 +1,4 @@
-local Config = require('cells.config')
+local Config = require("cells.config")
 
 local M = {}
 
