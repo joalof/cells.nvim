@@ -3,7 +3,6 @@ local config = require("cells.config")
 
 local M = {}
 
-
 -- Gets the valid comment delim (line and block) for the current filetype
 function M.get_comment_delim()
     local cmt_str_line = comment_ft.get(vim.bo.filetype)[1]
@@ -19,7 +18,7 @@ end
 -- creates a regex that will match comments with cell delimiters
 function M.create_delim_regex()
     local cmt = M.get_comment_delim()
-    local cell = config.cell_delimiter
+    local cell = config.options.cell_delimiter
 
     -- Let d1, d2 denote escaped comment delim and c the escaped cell delim,
     -- then the basic regex is: ^d1\s*c  and if d2 exists we add .*d2\s*$
@@ -40,12 +39,11 @@ function M.create_delim_regex()
     return regex
 end
 
-
 -- cache delimiter regexes by filetype here for a slight speedup
 local regex_cache = {}
 
 function M.get_delim_regex()
-    local ft_curr = vim.filetype.match({filename = vim.api.nvim_buf_get_name(0)})
+    local ft_curr = vim.filetype.match({ filename = vim.api.nvim_buf_get_name(0) })
     local regex = regex_cache[ft_curr]
     if not regex then
         regex = M.create_delim_regex()
@@ -53,7 +51,6 @@ function M.get_delim_regex()
     end
     return regex
 end
-    
 
 function M.find_prev_delim(opts)
     opts = opts or {}
@@ -101,12 +98,12 @@ end
 function M.cursor_to_prev_cell()
     -- first backward search: accept match at curr line after this
     -- we are guaranteed to be at the delim of the curr cell
-    local pos_new = M.find_prev_delim({move_cursor = true, accept_curr = true})
+    local pos_new = M.find_prev_delim({ move_cursor = true, accept_curr = true })
     if pos_new then
         vim.api.nvim_win_set_cursor(0, pos_new)
 
         -- second backward search: takes us to the delim of the prev cell
-        pos_new = M.find_prev_delim({move_cursor = true, accept_curr = false})
+        pos_new = M.find_prev_delim({ move_cursor = true, accept_curr = false })
         if pos_new then
             pos_new[1] = pos_new[1] + 1
             vim.api.nvim_win_set_cursor(0, pos_new)
@@ -122,7 +119,7 @@ end
 
 -- Moves the cursor to the first line of the next cell.
 function M.cursor_to_next_cell()
-    local pos_new = M.find_next_delim({move_cursor = false, accept_curr = false})
+    local pos_new = M.find_next_delim({ move_cursor = false, accept_curr = false })
     if pos_new then
         pos_new[1] = pos_new[1] + 1
         vim.api.nvim_win_set_cursor(0, pos_new)

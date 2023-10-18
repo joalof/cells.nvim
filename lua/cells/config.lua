@@ -5,12 +5,9 @@ local defaults = {
     cell_separator = "─",
 }
 
-M.options = {}
-
-function M.setup(options)
-    M.options = vim.tbl_deep_extend("force", {}, defaults, options or {})
+function M.configure(opts)
+    opts = opts or {}
+    M.options = vim.tbl_deep_extend("force", defaults, opts)
 end
-
-M.setup()
 
 return M

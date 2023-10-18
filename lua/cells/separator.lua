@@ -49,7 +49,7 @@ function M.draw_separators()
                 opts.id = line
                 local win_width = vim.api.nvim_win_get_width(0)
                 local num_sep = win_width - vim.fn.col("$")
-                opts.virt_text[1][1] = string.rep(config.cell_separator, num_sep)
+                opts.virt_text[1][1] = string.rep(config.options.cell_separator, num_sep)
                 vim.api.nvim_buf_set_extmark(buffer, ns_id, line - 1, 0, opts)
             else -- save existing border
                 separators[line].delete = false
