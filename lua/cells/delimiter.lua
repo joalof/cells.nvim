@@ -116,32 +116,4 @@ function M.get_cell_extent(ai_type)
     return {start = line_start, stop = line_stop}
 end
 
--- Find the region that corresponds to the nearest cell
--- ai_type: 'i' or 'a' for inner or around
-function M.get_cell_region(ai_type)
-    local cell_regex = M.get_delim_regex()
-    local pos_old = vim.api.nvim_win_get_cursor(0)
-
-    -- move cursor to starting position for backward search
-    vim.api.nvim_win_set_cursor(0, { pos_old[1], vim.fn.col("$") })
-
-    -- find prev cell delim or BOF, don't move cursor
-    local from_line = vim.fn.search(cell_regex, "ncWb", 1) + 1
-    if from_line > 1 and ai_type == "a" then
-        from_line = from_line - 1
-    end
-
-    -- find next cell delim or EOF, move cursor
-    local n_lines = vim.api.nvim_buf_line_count(0)
-    local to_line = vim.fn.search(cell_regex, "W", n_lines)
-    to_line = to_line == 0 and n_lines or to_line - 1
-    vim.api.nvim_win_set_cursor(0, { to_line, 0 })
-
-    -- define the region and move cursor back
-    local from = { from_line, 1 }
-    local to = { to_line, vim.fn.col("$") }
-    vim.api.nvim_win_set_cursor(0, pos_old)
-    return { from = from, to = to }
-end
-
 return M
