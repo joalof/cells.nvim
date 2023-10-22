@@ -6,7 +6,7 @@ k = 'hey'
 --%% yes
 ddc = 'baz'
 -- %% yes
-whow
+whow = "blargh"
 --[[ %% also valid fjdlsfjfdlsf]]
 -- other stuff -- %% not valid
 a = 'foo'
