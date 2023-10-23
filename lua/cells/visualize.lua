@@ -1,5 +1,4 @@
 local delim = require("cells.delimiter")
-local config = require("cells.config")
 
 local M = {}
 
@@ -32,7 +31,7 @@ function M.draw_separators()
     vim.api.nvim_win_set_cursor(0, { 1, 0 })
     local accept_curr = true
     while true do
-        local pos_next = delim.find_next_delim({move_cursor=false, accept_curr=accept_curr})
+        local pos_next = delim.find_next_delim({ move_cursor = false, accept_curr = accept_curr })
         if not pos_next then
             -- no more delimiters, delete old borders not marked for saving
             for _, state in pairs(separators) do
@@ -50,7 +49,7 @@ function M.draw_separators()
                 opts.id = line
                 local win_width = vim.api.nvim_win_get_width(0)
                 local num_sep = win_width - vim.fn.col("$")
-                opts.virt_text[1][1] = string.rep(config.options.cell_separator, num_sep)
+                opts.virt_text[1][1] = string.rep(require("cells.config").options.separator, num_sep)
                 vim.api.nvim_buf_set_extmark(buffer, ns_id, line - 1, 0, opts)
             else -- save existing border
                 separators[line].delete = false

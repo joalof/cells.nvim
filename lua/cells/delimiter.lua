@@ -1,5 +1,4 @@
 local comment_ft = require("Comment.ft")
-local config = require("cells.config")
 
 local M = {}
 
@@ -18,7 +17,7 @@ end
 -- Creates a regex that will match comments with cell delimiters.
 function M.create_delim_regex()
     local cmt = M.get_comment_delim()
-    local cell = config.options.cell_delimiter
+    local cell = require("cells.config").options.delimiter
 
     -- Let d1, d2 denote escaped comment delim and c the escaped cell delim,
     -- then the basic regex is: ^d1\s*c  and if d2 exists we add .*d2\s*$
@@ -88,9 +87,8 @@ function M.find_next_delim(opts)
     return pos_new
 end
 
-
 function M.get_cell_extent(ai_type)
-    local pos_prev = M.find_prev_delim({accept_curr = true})
+    local pos_prev = M.find_prev_delim({ accept_curr = true })
     local line_start
     local line_stop
 
@@ -101,19 +99,19 @@ function M.get_cell_extent(ai_type)
         if ai_type == "i" then
             line_start = line_start + 1
         end
-    else  -- if no match then start from BOF
+    else -- if no match then start from BOF
         line_start = 1
     end
-        
+
     -- Find the end of the cell, the final
     -- cell delimiter is never a part of the cell.
     local pos_next = M.find_next_delim()
     if pos_next then
         line_stop = pos_next[1] - 1
     else
-       line_stop = vim.fn.line("$")
+        line_stop = vim.fn.line("$")
     end
-    return {start = line_start, stop = line_stop}
+    return { start = line_start, stop = line_stop }
 end
 
 return M
