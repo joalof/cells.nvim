@@ -12,13 +12,13 @@ function M.draw_separators()
     -- where the delete-flag indicates that the border should be deleted,
     -- this is initally set to true for all borders and later flipped if
     -- a cell delimiter still exists at the line.
-    local separators = {}
+    local ext_states = {}
     for _, ext_tuple in ipairs(extmarks) do
         local id, line = unpack(ext_tuple)
-        separators[line] = { id = id, delete = true }
+        ext_states[line] = { id = id, delete = true }
     end
 
-    local opts = {
+    local ext_opts = {
         virt_text = { { "", "Comment" } },
         virt_text_pos = "eol",
         strict = false,
@@ -31,10 +31,10 @@ function M.draw_separators()
     vim.api.nvim_win_set_cursor(0, { 1, 0 })
     local accept_curr = true
     while true do
-        local pos_next = delim.find_next_delim({ move_cursor = false, accept_curr = accept_curr })
+        local pos_next = delim.find_next_delim({ accept_curr = accept_curr })
         if not pos_next then
             -- no more delimiters, delete old borders not marked for saving
-            for _, state in pairs(separators) do
+            for _, state in pairs(ext_states) do
                 if state.delete then
                     vim.api.nvim_buf_del_extmark(buffer, ns_id, state.id)
                 end
@@ -45,14 +45,14 @@ function M.draw_separators()
             vim.api.nvim_win_set_cursor(0, pos_next)
             accept_curr = false
             local line = pos_next[1]
-            if not separators[line] then -- draw new border
-                opts.id = line
+            if not ext_states[line] then -- draw new border
+                ext_opts.id = line
                 local win_width = vim.api.nvim_win_get_width(0)
-                local num_sep = win_width - vim.fn.col("$")
-                opts.virt_text[1][1] = string.rep(require("cells.config").options.separator, num_sep)
-                vim.api.nvim_buf_set_extmark(buffer, ns_id, line - 1, 0, opts)
+                local n_sep = win_width - vim.fn.col("$")
+                ext_opts.virt_text[1][1] = string.rep(require("cells.config").options.separator, n_sep)
+                vim.api.nvim_buf_set_extmark(buffer, ns_id, line - 1, 0, ext_opts)
             else -- save existing border
-                separators[line].delete = false
+                ext_states[line].delete = false
             end
         end
     end

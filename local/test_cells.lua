@@ -3,7 +3,7 @@
 -- dont go here
 d = 'hi'
 k = 'hey'
---%% yes
+--%% yessir
 ddc = 'baz'
 -- %% yes
 whow = "blargh"
@@ -15,7 +15,7 @@ b = 'baaaaaaaaaaaaaar'
 
 d = 'fo'
 --%%
+a = 'baz'
 a = 'baz' -- dragons
 a = 'baz' -- dragons
-a = 'baz' -- dragons
---%% hey joe 
+--%% hey joe
