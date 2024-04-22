@@ -1,6 +1,6 @@
 local M = {}
 
-local function create_mappings(textobj)
+local function create_textobj_mappings(textobj)
     -- inner/around
     for _, ai_type in ipairs({ "a", "i" }) do
         -- current cell
@@ -25,7 +25,7 @@ end
 function M.setup(opts)
     require("cells.config").configure(opts.config)
     if opts.textobject then
-        create_mappings(opts.textobject)
+        create_textobj_mappings(opts.textobject)
     end
 end
 

@@ -1,4 +1,5 @@
 local delim = require("cells.delimiter")
+local config = require('cells.config')
 
 local M = {}
 
@@ -82,6 +83,34 @@ end
 function M.select_next_cell(ai_type)
     M.cursor_to_next_cell()
     M.select_cell(ai_type)
+end
+
+function M.merge_cells(up_down)
+    up_down = up_down or 'down'
+    local pos_old = vim.api.nvim_win_get_cursor(0)
+    local pos_next
+    if up_down == 'down' then
+        pos_next = delim.find_next_delim({ accept_curr = true })
+    else
+        pos_next = delim.find_prev_delim({ accept_curr = true })
+        pos_old[1] = pos_old[1] - 1
+    end
+    if pos_next then
+        vim.api.nvim_win_set_cursor(0, pos_next)
+        vim.cmd.normal('dd')
+        vim.api.nvim_win_set_cursor(0, pos_old)
+    end
+end
+
+function M.put_cell(extra_text)
+    extra_text = extra_text or ""
+    local pos = vim.api.nvim_win_get_cursor(0)
+    local cmt_delim = delim.get_comment_delim()
+    local cell_text = cmt_delim.line[1] .. ' ' .. config.options.delimiter
+    if cmt_delim.line[2] ~= nil then
+        cell_text = cell_text .. ' ' .. cmt_delim.line[2]
+    end
+    vim.api.nvim_buf_set_lines(0, pos[1], pos[1], false, {cell_text})
 end
 
 return M

@@ -6,12 +6,12 @@ local M = {}
 function M.get_comment_delim()
     local cmt_str_line = comment_ft.get(vim.bo.filetype)[1]
     local cmt_str_block = comment_ft.get(vim.bo.filetype)[2]
-    local delim = {}
-    delim.line = vim.split(cmt_str_line, "%s", { plain = true })
+    local cmt_delim = {}
+    cmt_delim.line = vim.split(cmt_str_line, "%s", { plain = true })
     if cmt_str_block then
-        delim.block = vim.split(cmt_str_block, "%s", { plain = true })
+        cmt_delim.block = vim.split(cmt_str_block, "%s", { plain = true })
     end
-    return delim
+    return cmt_delim
 end
 
 -- Creates a regex that will match comments with cell delimiters.
