@@ -24,11 +24,23 @@ Install with you favourite plugin manager, for example with [Lazy.nvim](https://
 
 ```lua
 {
-  "joalof/cells.nvim",
-  config = function()
-    require("cells").setup()
-  end,
-  event = "VeryLazy",
+    "joalof/cells.nvim",
+    config = function()
+        -- if you want cells to automatically setup the cell textobject
+        -- you can provide a symbol here, otherwise leave empty
+        require("cells").setup({
+            textobject = "d", 
+        })
+        -- example keybinds for navigation functions
+        vim.keymap.set("n", "]d", function()
+            require("cells.editing").cursor_to_next_cell()
+        end, { silent = true })
+        vim.keymap.set("n", "[d", function()
+            require("cells.editing").cursor_to_prev_cell()
+        end, { silent = true })
+    end,
+
+
 }
 ```
 
