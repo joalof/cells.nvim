@@ -1,15 +1,15 @@
 local M = {}
 
-local defaults = {
+local DEFAULTS = {
     delimiter = "%%",
     separator = "─",
 }
 
-M.options = defaults
+M.options = {}
 
 function M.configure(opts)
     opts = opts or {}
-    M.options = vim.tbl_deep_extend("force", defaults, opts)
+    M.options = vim.tbl_deep_extend("force", DEFAULTS, opts)
 end
 
 return M

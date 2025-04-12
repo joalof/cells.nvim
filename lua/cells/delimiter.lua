@@ -1,11 +1,9 @@
-local comment_ft = require("Comment.ft")
-
 local M = {}
+local comment = require('cells.comment')
 
 -- Gets the valid comment delim (line and block) for the current filetype.
 function M.get_comment_delim()
-    local cmt_str_line = comment_ft.get(vim.bo.filetype)[1]
-    local cmt_str_block = comment_ft.get(vim.bo.filetype)[2]
+    local cmt_str_line, cmt_str_block = comment.get_commentstrings(vim.bo.filetype)
     local cmt_delim = {}
     cmt_delim.line = vim.split(cmt_str_line, "%s", { plain = true })
     if cmt_str_block then
