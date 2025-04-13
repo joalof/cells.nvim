@@ -205,15 +205,12 @@ local COMMENTSTRINGS = {
 
 local M = {}
 
-function M.get_commentstrings(lang, ctype)
+function M.get_commentstrings(lang)
     local tuple = COMMENTSTRINGS[lang]
     if not tuple then
         return nil
     end
-    if not ctype then
-        return vim.deepcopy(tuple)
-    end
-    return tuple[ctype]
+    return vim.deepcopy(tuple)
 end
 
 return M
